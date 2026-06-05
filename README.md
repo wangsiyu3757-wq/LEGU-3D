@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Geometry-Aware Zero-shot 3D Instance Segmentation and Visual Grounding</h1>
+  <h1 align="center">LEGO-3D:LLM-parsed Explicit Geometry for Open-vocabulary 3D Grounding</h1>
 </p>
 
 ## Overview
@@ -7,9 +7,10 @@
 3D instance segmentation in complex indoor environments is a fundamental challenge, with applications in embodied AI, robotics, and augmented reality. Existing methods are constrained by closed-set category recognition and imprecise spatial delineation, fundamentally limiting generalization. 
 
 We propose a geometry-aware zero-shot 3D instance segmentation framework with three core contributions:
-1. **LLM-Driven Query Parsing**: We leverage an LLM-driven query parsing strategy to flexibly and accurately decompose complex, descriptive queries into target boxes, mitigating the failure modes of conventional parsers on long, adjective-heavy sentences.
-2. **Structured Tabular Evaluation**: We design a structured evaluation scheme that organizes candidate objects alongside their geometric attributes—such as spatial coordinates, relative distances, and bounding box dimensions—into a row-by-row tabular list, which enables the LLM to systematically reason and pinpoint the target object.
-3. **Geometric Formalization**: We introduce a geometric formalization mechanism that processes raw 3D coordinates and distance metrics into standardized, LLM-compatible geometric representations, allowing the language model to directly ingest and utilize quantitative spatial data.
+1) LLM-based Token Structuring (LTS) (Stage 1/2): A prompted Qwen LLM decomposes the full query into a structured slot dictionary, assigning each entity a BOX label (BOX0 = target, BOX1/BOX2 = anchors), correctly handling long noun phrases, conjunctions, and embedded
+attribute clauses.
+2) Row-by-Row Object Listing (ROL) (Stage 3): We introduce ROL, which converts candidate objects into a structured attribute table for LLM-based grounding. Each row encodes one instance with its Euclidean distance to the anchor, relative orientation, and full bounding-box scale, converting target selection into a direct table lookup task that requires no implicit geometric inference.
+3) Dense Coordinate Rendering (DCR) (Stage 3): For each candidate, the full bounding-box physical scale size = (W×H×D) and Euclidean distance are serialised verbatim into the prompt. This geometric pre-processing makes the LLM behave like an “engineering-literate” agent that can autonomously weigh physical dimensions (large/small/tall/short) against spatial proximity (near/far/left/right) to resolve fine-grained referential ambiguity without any arithmetic computation.
 
 Experiments on ScanRefer achieve **38.9%** overall accuracy under a zero-shot protocol—competitive with the ZSVG3D baseline—while the LLM backbone is migrated to a locally deployed Qwen model, removing all proprietary API dependencies.
 
