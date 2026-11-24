@@ -119,31 +119,43 @@ LEGU-3D finds the refrigerator in a multi-anchor kitchen scene, where ZSVG3D and
 
 ## Getting started
 
-> 🚧 Code and prompt templates are being cleaned up and will be released in this repository. The commands below show the intended workflow.
+### Repository layout
+
+```text
+LEGU-3D/
+├── gen_visprogapple.py              # QPM: parse Nr3D queries into programs (Qwen3-32B)
+├── llm_grounding.py                 # OLM + DCM grounding and Nr3D evaluation
+├── generate_scanrefer_baseline.py   # QPM program generator for ScanRefer
+├── prompts/
+│   ├── prompt_n32.txt               # QPM prompt (Nr3D)
+│   └── prompt_n32_gemma.txt         # QPM prompt (ScanRefer)
+├── scripts/run_nr3d.sh              # launch / resume a Nr3D run
+└── zsvg/                            # direction labels, geometry, checkpointing, target resolution
+```
+
+ScanRefer evaluation code will be released later.
 
 ### Environment
 
-Tested on Ubuntu with:
-- python==3.9.12
-- pytorch==1.11.0
-- pytorch3d==0.7.2
-- langchain==0.2.1
-- vllm
+```bash
+pip install -r requirements.txt
+```
 
-### Data preparation
+Tested on Ubuntu with Python 3.9.12. The grounding code itself only needs `numpy`, `requests`, `tqdm`, `jsonlines` and `torch` (to read the feature file); the LLM is served separately with [vLLM](https://github.com/vllm-project/vllm).
 
-Place the preprocessed ScanNet scans, 2D images and instance masks in `data/`. `TODO: add download links / preprocessing script`
+### Data
+
+Data is not included in this repository. Follow the [ZSVG3D](https://github.com/CurryYuan/ZSVG3D) preprocessing to obtain:
 
 ```text
 data/
-├── scanrefer_val.json
-├── nr3d_val.json
-└── ...            # ScanNet scans, 2D images, instance masks
-prompts/           # parsing prompts
-zsvg/              # grounding pipeline
+├── nr3d.jsonl                         # Nr3D annotations (ReferIt3D)
+└── scannet/
+    ├── feats_3d.pkl                   # scene objects: boxes + class labels
+    └── splits/scannetv2_val.txt
 ```
 
-### 1. Serve the LLM locally (vLLM)
+### 1. Serve the LLM
 
 ```bash
 python -m vllm.entrypoints.openai.api_server \
@@ -155,40 +167,33 @@ python -m vllm.entrypoints.openai.api_server \
   --port 8000
 ```
 
-### 2. ScanRefer
+If your server requires a key, set `VLLM_API_KEY` (defaults to `EMPTY`).
+
+### 2. Parse queries (QPM)
 
 ```bash
-# 2.1 Generate query programs (QPM)
-# TODO: check --prompt_path / --llm_model match the served model (Qwen/Qwen3-32B-AWQ)
-python generate_scanrefer_baseline.py \
-  --scanrefer_path data/scanrefer_val.json \
-  --prompt_path prompts/prompt_n32_gemma.txt \
-  --output data/scanrefer_programs_baseline_gemma.json \
-  --llm_url http://127.0.0.1:8000/v1 \
-  --llm_model google/gemma-4-E2B-it \
+python gen_visprogapple.py \
+  --nr3d_path data/nr3d.jsonl \
+  --prompt_path prompts/prompt_n32.txt \
+  --output data/nr3d_qwen3_feats.json \
   --resume
-
-# 2.2 Run grounding evaluation (OLM + DCM + LLM selection)
-python llm_grounding_scanrefer_test.py
 ```
 
-### 3. Nr3D
+### 3. Ground and evaluate on Nr3D (OLM + DCM)
 
 ```bash
-# 3.1 Generate query programs
-python gen_visprogapple.py
+# runs detached and resumes from its checkpoint if restarted
+scripts/run_nr3d.sh
 
-# 3.2 Run grounding evaluation
-python3 -c "
-from zsvg.llm_grounding import run_llm_grounding_eval
-run_llm_grounding_eval(
-    prog_path='data/nr3d_val.json',
-    exp_name='llm_grounding_feats_20',
-)
-"
+# or directly
+python llm_grounding.py \
+  --prog_path data/nr3d_qwen3_feats.json \
+  --feats_pkl data/scannet/feats_3d.pkl \
+  --direction-scheme quadrant \
+  --exp_name legu3d_nr3d
 ```
 
-All inference is deterministic (temperature 0).
+Useful options: `--max_samples N` for a quick test, `--no_dcr` for the distance-ordering ablation, `--direction-scheme {quadrant,compass,compass_cutoff}` to change how directions are phrased. Results are written to `<exp_name>.log`. All LLM calls use temperature 0.
 
 ---
 

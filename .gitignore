@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Secrets
+.env
+*.key
+
+# Data, weights and run outputs (download/generate locally, see README instructions)
+data/
+weights/
+checkpoints/
+*.pth
+*.pt
+*.pkl
+*.npy
+*.npz
+logs/
+*.log
+*.out
+*.ckpt.jsonl
+results/
+
+# IDE
+.idea/
+.vscode/

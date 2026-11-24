@@ -1,0 +1,213 @@
+Your task is to parse a natural language description into a program that locates a target object in a 3D room.
+
+## STRICT OUTPUT RULES
+1. Output ONLY the program lines. No explanation, no comments, no markdown.
+2. Every program MUST start with BOX0=LOC(...) and end with TARGET=... (or BOX0=LOC(...) alone if the object is unique).
+3. ALL variables used in function arguments MUST be defined earlier as BOX0, BOX1, BOX2, ... or CENTER.
+4. NEVER use undefined variable names like SOFA, DESK, TABLE. Always assign them first: BOX1=LOC(object='sofa').
+5. The object= argument in LOC() MUST include ALL descriptive attributes from the description (color, material, shape, etc.).
+6. Do NOT create new functions. Use only the provided ones.
+7. Do NOT split a single object into multiple LOC() calls based on its material or parts.
+
+## AVAILABLE FUNCTIONS
+LOC(object)              → locate all instances of an object by description
+LEFT(targets, anchors)   → targets to the left of anchors
+RIGHT(targets, anchors)  → targets to the right of anchors
+FRONT(targets, anchors)  → targets in front of anchors
+BEHIND(targets, anchors) → targets behind anchors
+HIGHER(targets, anchors) → targets above anchors
+LOWER(targets, anchors)  → targets below anchors
+HIGHEST(targets)         → topmost target
+LOWEST(targets)          → bottommost target
+CLOSEST(targets, anchors)→ target nearest to anchors
+FARTHEST(targets, anchors)→ target farthest from anchors
+BETWEEN(targets, anchors)→ target between two anchors
+MID(targets)             → middle target in a group
+CALC_SIZE(targets)       → returns sizes of targets
+MIN(data)                → object with minimum size/value
+MAX(data)                → object with maximum size/value
+CENTER                   → center of the room (pre-defined variable, do NOT assign it)
+
+## EXAMPLES
+
+Description: the handicapped stall
+Program:
+BOX0=LOC(object='handicapped stall')
+TARGET=BOX0
+
+Description: the blue bag in the closet
+Program:
+BOX0=LOC(object='blue bag')
+BOX1=LOC(object='closet')
+TARGET=CLOSEST(targets=BOX0, anchors=BOX1)
+
+Description: end table with flowers on it
+Program:
+BOX0=LOC(object='end table')
+BOX1=LOC(object='flowers')
+TARGET=CLOSEST(targets=BOX0, anchors=BOX1)
+
+Description: the top white box on the floor
+Program:
+BOX0=LOC(object='white box')
+TARGET=HIGHEST(targets=BOX0)
+
+Description: the stool in between the two beds
+Program:
+BOX0=LOC(object='stool')
+BOX1=LOC(object='bed')
+TARGET=BETWEEN(targets=BOX0, anchors=BOX1)
+
+Description: the smallest dark cabinet
+Program:
+BOX0=LOC(object='dark cabinet')
+SIZES=CALC_SIZE(targets=BOX0)
+TARGET=MIN(data=SIZES)
+
+Description: there is a tv on top of this dresser
+Program:
+BOX0=LOC(object='dresser')
+BOX1=LOC(object='tv')
+TARGET=LOWER(targets=BOX0, anchors=BOX1)
+
+Description: face the fridge and then move to the trash can on the ground in the left corner
+Program:
+BOX0=LOC(object='trash can')
+BOX1=LOC(object='fridge')
+TARGET=LEFT(targets=BOX0, anchors=BOX1)
+
+Description: the picture above the bed
+Program:
+BOX0=LOC(object='picture')
+BOX1=LOC(object='bed')
+TARGET=HIGHER(targets=BOX0, anchors=BOX1)
+
+Description: the printer right next to the door
+Program:
+BOX0=LOC(object='printer')
+BOX1=LOC(object='door')
+TARGET=CLOSEST(targets=BOX0, anchors=BOX1)
+
+Description: the table in the middle of the room
+Program:
+BOX0=LOC(object='table')
+TARGET=CLOSEST(targets=BOX0, anchors=CENTER)
+
+Description: the box in the corner of the room
+Program:
+BOX0=LOC(object='box')
+TARGET=FARTHEST(targets=BOX0, anchors=CENTER)
+
+Description: bottle on the floor behind the toilet
+Program:
+BOX0=LOC(object='bottle')
+BOX1=LOC(object='toilet')
+TARGET=BEHIND(targets=BOX0, anchors=BOX1)
+
+Description: the tall bookshelf on the smaller wall
+Program:
+BOX0=LOC(object='bookshelf')
+SIZES=CALC_SIZE(targets=BOX0)
+TARGET=MAX(data=SIZES)
+
+Description: the stool in between the two beds
+Program:
+BOX0=LOC(object='stool')
+BOX1=LOC(object='bed')
+TARGET=BETWEEN(targets=BOX0, anchors=BOX1)
+
+Description: the towel that is the middle one to the left of the sink
+Program:
+BOX0=LOC(object='towel')
+BOX1=LOC(object='sink')
+BOX2=LEFT(targets=BOX0, anchors=BOX1)
+TARGET=MID(targets=BOX2)
+
+Description: the couch that is not next to the round coffee table
+Program:
+BOX0=LOC(object='couch')
+BOX1=LOC(object='round coffee table')
+TARGET=FARTHEST(targets=BOX0, anchors=BOX1)
+
+Description: the window on the right side near the picture hanging on the wall
+Program:
+BOX0=LOC(object='window')
+BOX1=LOC(object='picture')
+TARGET=RIGHT(targets=BOX0, anchors=BOX1)
+
+Description: the thin wooden table underneath the television and immediately to the left of the trash can
+Program:
+BOX0=LOC(object='thin wooden table')
+BOX1=LOC(object='television')
+BOX2=LOC(object='trash can')
+BOX3=LOWER(targets=BOX0, anchors=BOX1)
+TARGET=LEFT(targets=BOX3, anchors=BOX2)
+
+## SCANREFER-STYLE EXAMPLES (object descriptions must be COMPLETE and SPECIFIC)
+
+Description: this is the wood and fabric desk chair with arms . it is in front of the desk and to the right of the sofa .
+Program:
+BOX0=LOC(object='wood and fabric desk chair with arms')
+BOX1=LOC(object='desk')
+BOX2=LOC(object='sofa')
+TARGET=RIGHT(targets=BOX0, anchors=BOX2)
+
+Description: the object is the bottom rightmost of chairs surrounding a conference table . the chair is made of plastic , with metal legs and a pair of thin arm rests .
+Program:
+BOX0=LOC(object='bottom rightmost of chairs surrounding a conference table')
+TARGET=MAX(data=BOX0)
+
+Description: the black chair , it was placed near a brown table , positioned right on top of the table , near the wall . to the right was a white table .
+Program:
+BOX0=LOC(object='black chair')
+BOX1=LOC(object='brown table')
+BOX2=LOC(object='white table')
+TARGET=RIGHT(targets=BOX0, anchors=BOX1)
+
+Description: this is a brown coffee table . it is in front of a chair .
+Program:
+BOX0=LOC(object='brown coffee table')
+BOX1=LOC(object='chair')
+TARGET=FRONT(targets=BOX0, anchors=BOX1)
+
+Description: the chair 2.3m to the left of the desk
+Program:
+BOX0=LOC(object='chair')
+BOX1=LOC(object='desk')
+BOX2=LEFT(targets=BOX0, anchors=BOX1)
+TARGET=WITHIN_DIST(targets=BOX2, anchors=BOX1, dist=2.3)
+
+## COMMON MISTAKES TO AVOID
+
+WRONG — undefined variable in anchors:
+BOX0=LOC(object='chair')
+TARGET=CLOSEST(targets=BOX0, anchors=SOFA)   ← SOFA is never defined!
+
+CORRECT:
+BOX0=LOC(object='chair')
+BOX1=LOC(object='sofa')
+TARGET=CLOSEST(targets=BOX0, anchors=BOX1)
+
+WRONG — splitting one object into multiple LOC calls:
+BOX0=LOC(object='chair')
+BOX0=LOC(object='plastic')       ← overwriting BOX0, and 'plastic' is not an object
+BOX0=LOC(object='metal legs')    ← 'metal legs' is not an object
+
+CORRECT — include all attributes in one LOC:
+BOX0=LOC(object='plastic chair with metal legs and thin arm rests')
+
+WRONG — missing TARGET line:
+BOX0=LOC(object='brown coffee table')   ← no TARGET assigned
+
+CORRECT:
+BOX0=LOC(object='brown coffee table')
+BOX1=LOC(object='chair')
+TARGET=FRONT(targets=BOX0, anchors=BOX1)
+
+WRONG — program does not end with TARGET:
+BOX0=LOC(object='window')
+BOX2=LEFT(targets=BOX0)   ← result stored in BOX2, not TARGET
+
+CORRECT:
+BOX0=LOC(object='window')
+TARGET=LEFT(targets=BOX0)

@@ -1,0 +1,9 @@
+# Python 3.9.12
+torch==1.11.0
+pytorch3d==0.7.2
+langchain==0.2.1
+vllm            # serves Qwen/Qwen3-32B-AWQ via the OpenAI-compatible API
+numpy
+requests
+tqdm
+jsonlines
